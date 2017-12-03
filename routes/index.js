@@ -13,11 +13,11 @@ router.get('/', function(req, res, next) {
 	if(query) {
 		getNumberOfElements(query, function (err, numberOfItems) {
 			var axilary = [];
-			for(var i = 1; i <= numberOfItems; i++){
+			for(var i = 1; i <= 5; i++){
 			    axilary.push(i);
 			}
 			// loop over each element and save as scv
-			var fields = ['name', 'address', 'lat', 'lon'];
+			var fields = ['name', 'address', 'lat', 'lon', 'floor', 'phone', 'website' ];
 			var data = [];
 			async.eachSeries(axilary, function iterator(index, callback) {
 				getElement(query, index, function(err, element) {
@@ -48,13 +48,35 @@ var getNumberOfElements = function (query, cb) {
 var getElement = function (query, index, cb) {
 	request({uri:'https://catalog.api.2gis.ru/2.0/catalog/branch/search?page=' +  encodeURIComponent(index) + '&page_size=1&q=' +  encodeURIComponent(query) + '&region_id=112&locale=ru_KG&fields=dym%2Crequest_type%2Citems.contact_groups%2Citems.address%2Citems.point%2Citems.schedule%2Citems.reviews&key=' + key, method:'GET', encoding:'binary'}, function (err, res, page) {
 		var json = parser.parse(page);
+		console.log(json.result.items[0].address_comment)
 		var elem = {
 			"name": utf8.decode(json.result.items[0].name),
 			"address": utf8.decode(json.result.items[0].address_name),
 			"lat": json.result.items[0].point.lat,
-			"lon": json.result.items[0].point.lon
+			"lon": json.result.items[0].point.lon,
 		}
-		cb(null, elem)
+		/* add floot if exist */
+		if(json.result.items[0].address_comment) {
+			elem["floor"] = utf8.decode(json.result.items[0].address_comment)
+		} else {
+			elem["floor"] = "none"
+		}
+		/* iterate over contacts, add just phone and website */
+		if(json.result.items[0].contact_groups && json.result.items[0].contact_groups[0].contacts)
+		{
+			var object = json.result.items[0].contact_groups[0].contacts;
+			async.eachSeries(object, function iterator(item, callback) {
+				if(elem[item.type] == "phone")
+					elem[item.type] = utf8.decode(item.value)				
+				else(elem[item.type] == "website")
+					elem[item.type] = utf8.decode(item.text)	
+				callback()
+			}, function done() {
+				cb(null, elem)
+			});
+		} else {
+			cb(null, elem)
+		}
 	});
 }
 
