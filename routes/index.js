@@ -13,7 +13,7 @@ router.get('/', function(req, res, next) {
 	if(query) {
 		getNumberOfElements(query, function (err, numberOfItems) {
 			var axilary = [];
-			for(var i = 1; i <= 5; i++){
+			for(var i = 1; i <= numberOfItems; i++){
 			    axilary.push(i);
 			}
 			// loop over each element and save as scv
