@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Secret Santa</title>
+	</head>
+	<body>
+
+		<h1>Select file to download it</h1>
+		<% for(var i = 0; i < files.length; i++) { %>
+			<a href="/get?fileName=<%= files[i] %>"> <%= files[i] %> </a><br>
+		<% } %>
+	</body>
+</html>

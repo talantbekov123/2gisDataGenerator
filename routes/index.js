@@ -7,6 +7,8 @@ var json2csv = require('json2csv');
 var fs = require('fs');
 var utf8 = require('utf8');
 var key = require('../key')()
+var glob = require("glob")
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
 	var query = req.query.query
@@ -25,11 +27,15 @@ router.get('/', function(req, res, next) {
 					callback()
 				});
 			}, function done() {
+				console.log()
+				console.log("DONE")
+				console.log()
+
 				var csv = json2csv({ data: data, fields: fields });
-				fs.writeFile('file.csv', csv, function(err) {
+				fs.writeFile(query + '.csv', csv, function(err) {
 					if (err) throw err;
-					res.attachment('file.csv');
-					res.send(csv)
+					//res.attachment('file.csv');
+					res.send("Yor files will be available in list route after several minutes")
 				});
 			});
 		})
@@ -37,6 +43,21 @@ router.get('/', function(req, res, next) {
 		res.render('index');
 	}
 });
+
+router.get('/list', function(req, res, next) {
+	glob("./*.csv",{}, function (er, files) {
+		res.render('list', {'files': files});
+	})
+})
+
+router.get('/get', function(req, res, next) {
+	var fileName = req.query.fileName;
+	fs.readFile(fileName, 'utf8', function (err,file) {
+		if (err) throw err;
+		res.attachment(fileName);
+		res.send(file)
+	});
+})
 
 var getNumberOfElements = function (query, cb) {
 	request({uri:'https://catalog.api.2gis.ru/2.0/catalog/branch/search?page=1&page_size=1&q=' +  encodeURIComponent(query) + '&region_id=112&locale=ru_KG&fields=dym%2Crequest_type%2Citems.contact_groups%2Citems.address%2Citems.point%2Citems.schedule%2Citems.reviews&key=' + key, method:'GET', encoding:'binary'}, function (err, res, page) {
