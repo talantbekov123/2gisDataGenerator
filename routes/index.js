@@ -49,10 +49,18 @@ var getElement = function (query, index, cb) {
 	request({uri:'https://catalog.api.2gis.ru/2.0/catalog/branch/search?page=' +  encodeURIComponent(index) + '&page_size=1&q=' +  encodeURIComponent(query) + '&region_id=112&locale=ru_KG&fields=dym%2Crequest_type%2Citems.contact_groups%2Citems.address%2Citems.point%2Citems.schedule%2Citems.reviews&key=' + key, method:'GET', encoding:'binary'}, function (err, res, page) {
 		var json = parser.parse(page);
 		var elem = {
-			"name": utf8.decode(json.result.items[0].name),
-			"address": utf8.decode(json.result.items[0].address_name),
-			"lat": json.result.items[0].point.lat,
-			"lon": json.result.items[0].point.lon,
+			"name": utf8.decode(json.result.items[0].name)
+		}
+		if(json.result.items[0].address_name) {
+			elem["address"] = utf8.decode(json.result.items[0].address_name)
+		}
+		/* handle error in case no location of organization */
+		if(json.result.items[0].point) {
+			elem["lat"] = json.result.items[0].point.lat
+			elem["lon"] = json.result.items[0].point.lon
+		} else {
+			elem["lat"] = "none";
+			elem["lon"] = "none";
 		}
 		console.log(elem.name)
 		/* add floot if exist */
