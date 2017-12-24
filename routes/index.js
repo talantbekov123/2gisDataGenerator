@@ -48,13 +48,13 @@ var getNumberOfElements = function (query, cb) {
 var getElement = function (query, index, cb) {
 	request({uri:'https://catalog.api.2gis.ru/2.0/catalog/branch/search?page=' +  encodeURIComponent(index) + '&page_size=1&q=' +  encodeURIComponent(query) + '&region_id=112&locale=ru_KG&fields=dym%2Crequest_type%2Citems.contact_groups%2Citems.address%2Citems.point%2Citems.schedule%2Citems.reviews&key=' + key, method:'GET', encoding:'binary'}, function (err, res, page) {
 		var json = parser.parse(page);
-		console.log(json.result.items[0].address_comment)
 		var elem = {
 			"name": utf8.decode(json.result.items[0].name),
 			"address": utf8.decode(json.result.items[0].address_name),
 			"lat": json.result.items[0].point.lat,
 			"lon": json.result.items[0].point.lon,
 		}
+		console.log(elem.name)
 		/* add floot if exist */
 		if(json.result.items[0].address_comment) {
 			elem["floor"] = utf8.decode(json.result.items[0].address_comment)
@@ -68,7 +68,7 @@ var getElement = function (query, index, cb) {
 			async.eachSeries(object, function iterator(item, callback) {
 				if(elem[item.type] == "phone")
 					elem[item.type] = utf8.decode(item.value)				
-				else(elem[item.type] == "website")
+				else if(elem[item.type] == "website")
 					elem[item.type] = utf8.decode(item.text)	
 				callback()
 			}, function done() {
